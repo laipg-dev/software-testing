@@ -34,7 +34,7 @@ Cần cài đặt:
 
 #### Clone dự án:
 ```bash
-git clone https://github.com/thanhdinh2005/software-testing.git
+git clone https://github.com/laipg-dev/software-testing.git
 cd software-testing
 ```
 
