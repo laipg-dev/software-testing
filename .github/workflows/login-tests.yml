@@ -1,0 +1,59 @@
+name: Login Tests CI
+
+on:
+  push:
+    branches: 
+      - main 
+    paths:
+      - 'frontend/**'
+      - 'backend/src/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - 'backend/src/**'
+
+jobs:
+  test-login:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build and Start Backend/DB Services
+        run: docker compose up -d --build postgres-app backend 
+          
+      - name: Wait for Spring Boot API (8080) to be ready
+        run: sleep 45s
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Start Frontend Dev Server
+        run: |
+          cd frontend
+          npm run dev & 
+        env:
+          VITE_API_HOST: http://localhost:8080 
+        
+      - name: Run Login Unit Tests
+        run: |
+          cd frontend
+          npm test -- --src/tests/validation.test.js
+          
+      - name: Run Login E2E Tests
+        run: |
+          cd frontend
+          npm run test:e2e -- --spec "cypress/e2e/login.e2e.cy.js"
+
+      - name: Stop and Remove Backend Containers
+        if: always() 
+        run: docker compose down
